@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Биомеханика Интерактивті Курсы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5; --secondary: #7c3aed; --accent: #f43f5e;
+            --success: #10b981; --bg: #f8fafc; --card: #ffffff; --text: #1e293b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 40px 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: 20px auto 60px; padding: 0 20px; }
+
+        /* ТАБТАР */
+        .tabs-nav { display: flex; background: var(--card); padding: 8px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; gap: 5px; position: sticky; top: 10px; z-index: 100; overflow-x: auto; }
+        .tab-btn { flex: 1; min-width: 110px; padding: 15px; border: none; background: transparent; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 15px; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.85rem; }
+        .tab-btn.active { background: #f1f5f9; color: var(--primary); box-shadow: inset 0 0 0 2px var(--primary); }
+        .tab-btn.locked { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+        .tab-content { display: none; background: var(--card); padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* TOOLTIP */
+        .w { color: var(--primary); font-weight: 600; border-bottom: 2px dashed #cbd5e1; cursor: help; position: relative; display: inline-block; }
+        .w:hover::after { content: attr(data-t); position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; white-space: nowrap; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        /* ТАПСЫРМАЛАР */
+        .task-card { border: 1px solid #f1f5f9; padding: 25px; border-radius: 20px; margin-bottom: 25px; background: #fafafa; }
+        .match-row { display: grid; grid-template-columns: 80px 1fr; gap: 20px; margin-bottom: 15px; align-items: center; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .match-row-tasks { grid-template-columns: 1fr 1fr; }
+        select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; }
+        .btn-check { width: 100%; padding: 18px; border: none; border-radius: 15px; background: var(--success); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-check:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .task-points-badge { margin-top: 10px; display: inline-block; background: #e0e7ff; color: #4338ca; padding: 4px 12px; border-radius: 50px; font-size: 0.9rem; font-weight: bold; }
+
+        /* БАҒАЛАУ */
+        .grade-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .grade-table th, .grade-table td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        .grade-table th { background: #f8fafc; }
+        .score-val { font-size: 4.5rem; font-weight: 800; color: var(--primary); text-align: center; }
+        .progress-box { width: 100%; background: #e2e8f0; height: 18px; border-radius: 10px; margin: 20px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: 1s ease; }
+        
+        /* ЖҰМБАҚ */
+        .riddle-box { background: #fdf2f2; border: 2px dashed var(--accent); padding: 40px; border-radius: 25px; text-align: center; }
+        #r_ans { width: 100%; max-width: 400px; padding: 15px; border-radius: 15px; border: 2px solid var(--accent); margin: 20px 0; text-align: center; font-size: 1.1rem; }
+
+        /* ПРАКТИКА */
+        .practice-area { line-height: 1.8; }
+        .practice-step { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
+        .criteria-checks { background: #f1f5f9; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>БИОМЕХАНИКА</h1>
+    <p>Тірі ағзалардың қозғалысын зерттейтін интерактивті оқулық</p>
+</header>
+
+<div class="container">
+    <nav class="tabs-nav">
+        <button class="tab-btn active" onclick="showTab('theory')"><i class="fas fa-book"></i><span>Теория</span></button>
+        <button class="tab-btn" onclick="showTab('tasks')"><i class="fas fa-tasks"></i><span>Тапсырмалар</span></button>
+        <button class="tab-btn" onclick="showTab('image')"><i class="fas fa-eye"></i><span>Суретпен жұмыс</span></button>
+        <button class="tab-btn" onclick="showTab('riddle')"><i class="fas fa-brain"></i><span>Жұмбақ</span></button>
+        <button class="tab-btn locked" id="tab-pr" onclick="showTab('practice')"><i class="fas fa-flask"></i><span>Практика</span></button>
+        <button class="tab-btn" onclick="showTab('grading')"><i class="fas fa-chart-line"></i><span>Бағалау</span></button>
+            <button class="tab-btn" onclick="showTab('homework')"><i class="fas fa-lightbulb"></i><span>Үй жұмысы</span></button>
+    </nav>
+
+    <!-- 1. ТЕОРИЯ -->
+    <section id="theory" class="tab-content active">
+        <div class="theory-text">
+            <p><span class="w" data-t="Биомеханика">Биомеханика</span> — <span class="w" data-t="живых организмов">тірі ағзалардың</span> <span class="w" data-t="возможности движения">қозғалыс мүмкіндіктері</span> мен <span class="w" data-t="двигательную деятельность">қозғалыс әрекетін</span> <span class="w" data-t="зерттейтін ғылым саласы">зерттейтін ғылым саласы</span>. Ең үлкен <span class="w" data-t="практический интерес">практикалық қызығушылық</span> адам мен <span class="w" data-t="высших животных">жоғары сатыдағы жануарлардың</span> қозғалысын зерттеуге бағытталған. Жануарлардың қозғалысы туралы <span class="w" data-t="первые труды">алғашқы еңбектерді</span> <span class="w" data-t="Аристотель">Аристотель</span> (б.з.д. 384–322 жж.) жазған.</p>
+            
+            <p>Биомеханиканың <span class="w" data-t="развитие">дамуына</span> <span class="w" data-t="Гален">Гален</span>, <span class="w" data-t="Леонардо да Винчи">Леонардо да Винчи</span>, <span class="w" data-t="Микеланджело">Микеланджело</span>, <span class="w" data-t="Джованни Альфонсо Борелли">Джованни Альфонсо Борелли</span> сияқты ғалымдар үлкен <span class="w" data-t="вклад">үлес</span> қосты. Одан кейін И.М. Сеченов, П.Ф. Лесгафт, А.А. Ухтомский, Н.А. Бернштейн сияқты ғалымдар биомеханиканың ғылым ретінде дамуына <span class="w" data-t="влияние">ықпал етті</span>.</p>
+            
+            <h3>Қазіргі кезде мына бағыттар дамуда:</h3>
+            <ul>
+                <li><span class="w" data-t="инженерная биомеханика">инженерлік биомеханика</span> (<span class="w" data-t="связана с робототехникой">робототехникамен байланысты</span>);</li>
+                <li><span class="w" data-t="медицинская биомеханика">медициналық биомеханика</span> (<span class="w" data-t="профилактика травм">жарақаттың алдын алу</span> және <span class="w" data-t="протезирование">протездеу</span>);</li>
+                <li><span class="w" data-t="эргономическая биомеханика">эргономикалық биомеханика</span> (<span class="w" data-t="взаимосвязь природы и человека">адам мен тірі табиғаттың өзара байланысы</span>).</li>
+            </ul>
+            
+            <hr style="margin:20px 0; opacity:0.1">
+            <h3>Роботтардың қозғалыс және жетектер жүйелері</h3>
+            <p>Бұл бөлімде біз келесі <span class="w" data-t="структуры">құрылымдарды</span> қарастырамыз: <span class="w" data-t="воздушные мышцы">ауа бұлшықеттері</span>, <span class="w" data-t="нитиноловая проволока">нитинол сымы</span>.</p>
+            
+            <h3>Ауа бұлшықеттері</h3>
+            <p><span class="w" data-t="Воздушная мышца">Ауа бұлшықеті</span> — 1950-жылдары Дж. Л. Мак Киббен ұсынған <span class="w" data-t="простое устройство">қарапайым құрылғы</span>. <span class="w" data-t="Как биологическая мышца">Биологиялық бұлшықет сияқты</span>, ауа бұлшықеті <span class="w" data-t="при активации">белсендірілген кезде</span> <span class="w" data-t="сокращается">жиырылады</span>. Ол биологиялық бұлшықеттің <span class="w" data-t="точная копия">дәл көшірмесіне</span> жақын болғандықтан, зерттеушілерге тірі бұлшықеттердің биомеханикалық және <span class="w" data-t="иннервационные процессы">иннервациялық процестерін</span> <span class="w" data-t="моделировать">модельдеуге</span> мүмкіндік береді.</p>
+            
+            <p><b>Артықшылықтары:</b> <span class="w" data-t="легкий вес">жеңіл салмақ</span>; <span class="w" data-t="гибкая структура">икемді құрылым</span>; <span class="w" data-t="большое соотношение сила/вес">үлкен күш/салмақ қатынасы</span> (400:1); ұзақ уақыт <span class="w" data-t="устойчивость к кручению">бұралуға төзімділік</span>; арнайы <span class="w" data-t="параллельность крепления">бекіту параллельдігін</span> талап етпейді.</p>
+            
+            <h3>Нитинол сымы</h3>
+            <p><span class="w" data-t="Нитинол">Нитинол</span> — «<span class="w" data-t="память формы">пішін жадысы</span>» қасиеті бар <span class="w" data-t="сплав">қорытпа</span>. <span class="w" data-t="При нагревании">Қыздырылған кезде</span> ол бастапқы ұзындығының шамамен 10%-ына дейін қысқара алады және қайтадан өзінің бастапқы пішінін қалпына келтіреді.</p>
+        </div>
+    </section>
+
+    <!-- 2. ТАПСЫРМАЛАР -->
+    <section id="tasks" class="tab-content">
+        <div class="task-card" id="t1-box">
+            <h3>1-тапсырма: Ұғымдар мен анықтамаларды сәйкестендір</h3>
+            <div class="match-row match-row-tasks"><span>1. Биомеханика</span> <select class="q1"><option value="">Таңдаңыз</option><option value="a">a) Пішін жадысы бар қорытпа</option><option value="b">b) Тірі ағзалардың қозғалысын зерттейтін ғылым</option><option value="c">c) Қысым әсерінен жиырылатын құрылғы</option><option value="d">d) Роботтарды жасау және қолдану саласы</option></select></div>
+            <div class="match-row match-row-tasks"><span>2. Ауа бұлшықеті</span> <select class="q1"><option value="">Таңдаңыз</option><option value="d">d) Роботтарды жасау және қолдану саласы</option><option value="c">c) Қысым әсерінен жиырылатын құрылғы</option><option value="b">b) Тірі ағзалардың қозғалысын зерттейтін ғылым</option><option value="a">a) Пішін жадысы бар қорытпа</option></select></div>
+            <div class="match-row match-row-tasks"><span>3. Нитинол</span> <select class="q1"><option value="">Таңдаңыз</option><option value="b">b) Тірі ағзалардың қозғалысын зерттейтін ғылым</option><option value="a">a) Пішін жадысы бар қорытпа</option><option value="d">d) Роботтарды жасау және қолдану саласы</option><option value="c">c) Қысым әсерінен жиырылатын құрылғы</option></select></div>
+            <div class="match-row match-row-tasks"><span>4. Робототехника</span> <select class="q1"><option value="">Таңдаңыз</option><option value="c">c) Қысым әсерінен жиырылатын құрылғы</option><option value="a">a) Пішін жадысы бар қорытпа</option><option value="d">d) Роботтарды жасау және қолдану саласы</option><option value="b">b) Тірі ағзалардың қозғалысын зерттейтін ғылым</option></select></div>
+            <button class="btn-check" onclick="checkTask('t1-box', 'q1', ['b', 'c', 'a', 'd'], 't1', 1)">Тексеру</button>
+            <div class="task-points-badge" id="t1-badge">Балл: 0 / 1</div>
+        </div>
+
+        <div class="task-card" id="t2-box">
+            <h3>🔹 2-тапсырма: Қасиеттерді сәйкестендір</h3>
+            <div class="match-row match-row-tasks"><span>1. Ауа бұлшықеті</span> <select class="q2"><option value="">Таңдаңыз</option><option value="a">a) Қыздырғанда қысқарады</option><option value="b">b) Пневматикалық жүйемен жұмыс істейді</option><option value="d">d) Электр тогы арқылы қыздырылады</option></select></div>
+            <div class="match-row match-row-tasks"><span>1. Ауа бұлшықеті</span> <select class="q2"><option value="">Таңдаңыз</option><option value="d">d) Электр тогы арқылы қыздырылады</option><option value="c">c) Ұзындығының 25%-ына дейін қысқара алады</option><option value="a">a) Қыздырғанда қысқарады</option></select></div>
+            <div class="match-row match-row-tasks"><span>2. Нитинол сымы</span> <select class="q2"><option value="">Таңдаңыз</option><option value="b">b) Пневматикалық жүйемен жұмыс істейді</option><option value="a">a) Қыздырғанда қысқарады</option><option value="c">c) Ұзындығының 25%-ына дейін қысқара алады</option></select></div>
+            <div class="match-row match-row-tasks"><span>2. Нитинол сымы</span> <select class="q2"><option value="">Таңдаңыз</option><option value="c">c) Ұзындығының 25%-ына дейін қысқара алады</option><option value="d">d) Электр тогы арқылы қыздырылады</option><option value="b">b) Пневматикалық жүйемен жұмыс істейді</option></select></div>
+            <button class="btn-check" onclick="checkTask('t2-box', 'q2', ['b', 'c', 'a', 'd'], 't2', 1)">Тексеру</button>
+            <div class="task-points-badge" id="t2-badge">Балл: 0 / 1</div>
+        </div>
+
+        <div class="task-card" id="t3-box">
+            <h3>🔹 3-тапсырма: Қолдану салаларын сәйкестендір</h3>
+            <div class="match-row match-row-tasks"><span>1. Инженерлік биомеханика</span> <select class="q3"><option value="">Таңдаңыз</option><option value="a">a) Протездер жасау, жарақаттың алдын алу</option><option value="c">c) Робототехникамен байланысты зерттеулер</option><option value="b">b) Адам мен табиғат арасындағы өзара байланыс</option></select></div>
+            <div class="match-row match-row-tasks"><span>2. Медициналық биомеханика</span> <select class="q3"><option value="">Таңдаңыз</option><option value="b">b) Адам мен табиғат арасындағы өзара байланыс</option><option value="a">a) Протездер жасау, жарақаттың алдын алу</option><option value="c">c) Робототехникамен байланысты зерттеулер</option></select></div>
+            <div class="match-row match-row-tasks"><span>3. Эргономикалық биомеханика</span> <select class="q3"><option value="">Таңдаңыз</option><option value="c">c) Робототехникамен байланысты зерттеулер</option><option value="b">b) Адам мен табиғат арасындағы өзара байланыс</option><option value="a">a) Протездер жасау, жарақаттың алдын алу</option></select></div>
+            <button class="btn-check" onclick="checkTask('t3-box', 'q3', ['c', 'a', 'b'], 't3', 1)">Тексеру</button>
+            <div class="task-points-badge" id="t3-badge">Балл: 0 / 1</div>
+        </div>
+    </section>
+
+    <!-- 3. СУРЕТПЕН ЖҰМЫС -->
+    <section id="image" class="tab-content">
+        <h3>Ауа бұлшықетінің құрылысы</h3>
+        <img src="muscle.png" style="width:100%; max-width:400px; display:block; margin:20px auto; border-radius:15px;">
+        <div class="task-card" id="img-box">
+            <div class="match-row"><span>1. </span> <select class="qimg"><option value="">Таңдаңыз</option><option value="loop">Ілмек (бекіту)</option><option value="tube">Ішкі резеңке түтік</option><option value="body">Корпус</option></select></div>
+            <div class="match-row"><span>2. </span> <select class="qimg"><option value="">Таңдаңыз</option><option value="body">Ауа бұлшықетінің корпусы</option><option value="mesh">Торлы қаптама (жең)</option><option value="fitting">Соңғы фитинг</option></select></div>
+            <div class="match-row"><span>3. </span> <select class="qimg"><option value="">Таңдаңыз</option><option value="tube">Ішкі резеңке түтік</option><option value="mesh">Торлы қаптама</option><option value="loop">Ілмек</option></select></div>
+            <div class="match-row"><span>4. </span> <select class="qimg"><option value="">Таңдаңыз</option><option value="fitting">Соңғы фитинг</option><option value="loop">Ілмек</option><option value="body">Ауа бұлшықетінің корпусы</option></select></div>
+            <div class="match-row"><span>5. </span> <select class="qimg"><option value="">Таңдаңыз</option><option value="mesh">Торлы қаптама</option><option value="fitting">Соңғы фитинг (қосылыс)</option><option value="tube">Резеңке түтік</option></select></div>
+            <button class="btn-check" onclick="checkTask('img-box', 'qimg', ['loop', 'mesh', 'tube', 'body', 'fitting'], 'img', 2)">Тексеру</button>
+            <div class="task-points-badge" id="img-badge">Балл: 0 / 2</div>
+        </div>
+    </section>
+
+    <!-- 4. ЖҰМБАҚ -->
+    <section id="riddle" class="tab-content">
+        <div class="riddle-box">
+            <p>Созыламын, жиырылам, Күш беріп мен қимылға. Ауа кірсе — қысқарам, Ұқсаймын мен бұлшыққа. Роботтарда қолданам, Қолға ұстап жасайсың. Мен не?</p>
+            <input type="text" id="r_ans" placeholder="Жауапты жазыңыз...">
+            <button class="btn-check" onclick="checkRiddle()">Тексеру</button>
+            <div class="task-points-badge" id="rid-badge">Балл: 0 / 1</div>
+        </div>
+    </section>
+
+    <!-- 5. ПРАКТИКА -->
+    <section id="practice" class="tab-content">
+        <div class="practice-area">
+            <h2>🛠️ Пластилиннен «ауа бұлшықетін» қалай жасауға болады</h2>
+            <p>Пластилиннен жасалған ауа бұлшықеті — бұл қарапайым тәжірибелік модель. Ол шынайы жасанды бұлшықеттің (МакКиббен бұлшықеті) қалай жұмыс істейтінін көрсету үшін қолданылады.</p>
+            <hr style="margin: 15px 0; opacity: 0.1;">
+            <h3>📦 Қажетті заттар:</h3>
+            <ul>
+                <li>жұмсақ пластилин</li>
+                <li>жұқа ауа шары (шарик) немесе резеңке түтік</li>
+                <li>жіп немесе тор (мысалы, көкөніс салатын тор)</li>
+                <li>түтікше (ауа үрлеу үшін)</li>
+                <li>скотч</li>
+            </ul>
+            <hr style="margin: 15px 0; opacity: 0.1;">
+            <h3>⚙️ Жасалу жолы:</h3>
+            <div class="practice-step"><b>1. Негіз (ішкі камера):</b> Шарик немесе резеңке түтікті ал — бұл «бұлшықет» болады. Ішіне ауа жіберу үшін түтікшені енгіз.</div>
+            <div class="practice-step"><b>2. Бекіту:</b> Түтікше кірген жерін пластилинмен жап, ауа шықпау үшін.</div>
+            <div class="practice-step"><b>3. Сыртқы қабық:</b> Шариктің сыртын жіппен айқастырып ора немесе тор кигіз. Бұл өте маңызды: үрлегенде ол ұзарып емес, қысқарады.</div>
+            <div class="practice-step"><b>4. Ұштарын жасау:</b> Екі шетіне пластилиннен бекіткіш жаса. Қалаған жағдайда тіс тазалағыш немесе таяқша салуға болады.</div>
+            <div class="practice-step"><b>5. Тексеру:</b> Түтікше арқылы ауа үрле. Үрлегенде бұлшықет жуандап, қысқарады.</div>
+            <hr style="margin: 15px 0; opacity: 0.1;">
+            <p><b>💡 Неге бұлай болады:</b> Ішіндегі ауа кеңейген кезде, сыртқы тор оны шектейді → сондықтан ұзындығы қысқарып, бұлшықет сияқты жұмыс істейді.</p>
+        </div>
+    </section>
+
+    <!-- 6. БАҒАЛАУ -->
+    <section id="grading" class="tab-content">
+        <h2>Бағалау критерийлері мен нәтиже</h2>
+        <div class="criteria-checks">
+            <h3>🏠 Үй жұмысы (Коллаж) - макс 2б</h3>
+            <div style="margin-bottom:10px;"><input type="checkbox" id="hw1" onchange="calcTotal()"> <span>Коллаж әдемі, түрлі-түсті және 5+ элемент (1б)</span></div>
+            <div style="margin-bottom:10px;"><input type="checkbox" id="hw2" onchange="calcTotal()"> <span>Коллаждың мағынасы дұрыс жеткізілген (1б)</span></div>
+            <h3 style="margin-top:20px;">🛠️ Практикалық тапсырма - макс 2б</h3>
+            <div style="margin-bottom:10px;"><input type="checkbox" id="pr1" onchange="calcTotal()"> <span>Модель дұрыс жиналған және жұмыс істейді (1б)</span></div>
+            <div style="margin-bottom:10px;"><input type="checkbox" id="pr2" onchange="calcTotal()"> <span>Жасалу кезеңдерін сақтап, ұқыпты орындаған (1б)</span></div>
+        </div>
+        <table class="grade-table">
+            <thead><tr><th>Критерий</th><th>Алынған балл</th><th>Макс балл</th></tr></thead>
+            <tbody>
+                <tr><td>Үй жұмысы (Коллаж)</td><td id="res-hw">0</td><td>2</td></tr>
+                <tr><td>Сәйкестендіру тапсырмалары (1,2,3)</td><td id="res-tasks">0</td><td>3</td></tr>
+                <tr><td>Сурет бөліктерін белгілеу</td><td id="res-img">0</td><td>2</td></tr>
+                <tr><td>Жұмбақты шешу</td><td id="res-rid">0</td><td>1</td></tr>
+                <tr><td>Практикалық модель</td><td id="res-pr">0</td><td>2</td></tr>
+                <tr style="font-weight: bold; background: #f1f5f9;"><td>ЖАЛПЫ БАЛЛ</td><td id="res-total">0</td><td>10</td></tr>
+            </tbody>
+        </table>
+        <div style="text-align: center; margin-top:30px;">
+            <div class="score-val" id="total-score-display">0.00 / 10</div>
+            <div class="progress-box"><div class="progress-fill" id="p-fill"></div></div>
+            <button class="reset-btn" style="background: var(--accent); color:white; padding:12px 30px; border:none; border-radius:50px; cursor:pointer; font-weight:bold;" onclick="location.reload()">Начать заново</button>
+        </div>
+    </section>
+</div>
+
+
+    <!-- 7. ҮЙ ЖҰМЫСЫ -->
+    <section id="homework" class="tab-content">
+        <h3>«Жаңа өнертабыс ойлап тап»</h3>
+        <div class="task-card">
+            <p><b>Оқушы:</b></p>
+            <ul>
+                <li>Ауа бұлшықеті немесе нитинол қолданылатын бір құрылғы (құрал, робот, зат) ойлап табады</li>
+                <li>Оған атау береді</li>
+                <li>Қалай жұмыс істейтінін 2–3 сөйлеммен түсіндіреді</li>
+            </ul>
+            <p><b>Мысалы:</b> “ақылды қолғап”, “көмекші робот” т.б.</p>
+            <hr style="margin:15px 0; opacity:0.1;">
+            <p><b>Бағалау критерийі (2 ұпай)</b></p>
+            <ul>
+                <li>1 ұпай – жаңа идея (құрылғы) ойлап табылған және атауы бар</li>
+                <li>1 ұпай – оның қалай жұмыс істейтіні түсінікті жазылған</li>
+            </ul>
+        </div>
+    </section>
+
+<audio id="s-true" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+<audio id="s-false" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+
+<script>
+    let scores = { t1:0, t2:0, t3:0, img:0, rid:0, hw:0, pr:0 };
+
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(id));
+        if(activeBtn) activeBtn.classList.add('active');
+    }
+
+    function playS(win) {
+        const s = document.getElementById(win ? 's-true' : 's-false');
+        s.currentTime = 0; s.play();
+    }
+
+    function calcTotal() {
+        scores.hw = (document.getElementById('hw1').checked ? 1 : 0) + (document.getElementById('hw2').checked ? 1 : 0);
+        scores.pr = (document.getElementById('pr1').checked ? 1 : 0) + (document.getElementById('pr2').checked ? 1 : 0);
+        let total = scores.t1 + scores.t2 + scores.t3 + scores.img + scores.rid + scores.hw + scores.pr;
+        
+        document.getElementById('res-hw').innerText = scores.hw;
+        document.getElementById('res-tasks').innerText = (scores.t1 + scores.t2 + scores.t3).toFixed(2);
+        document.getElementById('res-img').innerText = scores.img.toFixed(2);
+        document.getElementById('res-rid').innerText = scores.rid;
+        document.getElementById('res-pr').innerText = scores.pr;
+        document.getElementById('res-total').innerText = total.toFixed(2);
+
+        document.getElementById('total-score-display').innerText = total.toFixed(2) + " / 10";
+        document.getElementById('p-fill').style.width = (total * 10) + "%";
+    }
+
+    function checkTask(boxId, qClass, answers, scoreKey, maxPoints) {
+        const selects = document.getElementById(boxId).querySelectorAll('.' + qClass);
+        let correctCount = 0;
+        selects.forEach((sel, i) => { if(sel.value === answers[i]) correctCount++; sel.disabled = true; });
+        let earned = (maxPoints / answers.length) * correctCount;
+        scores[scoreKey] = earned;
+        document.getElementById(scoreKey + '-badge').innerText = "Балл: " + earned.toFixed(2) + " / " + maxPoints;
+        document.getElementById(boxId).querySelector('button').disabled = true;
+        playS(correctCount === answers.length);
+        calcTotal();
+    }
+
+    function checkRiddle() {
+        let val = document.getElementById('r_ans').value.toLowerCase().trim();
+        if(val === 'ауа бұлшықеті' || val === 'ауа бұлшық еті') {
+            scores.rid = 1; document.getElementById('rid-badge').innerText = "Балл: 1.00 / 1"; playS(true);
+            alert("Дұрыс! Практика бөлімі ашылды.");
+            const prTab = document.getElementById('tab-pr');
+            prTab.classList.remove('locked'); prTab.style.pointerEvents="auto"; prTab.style.opacity="1";
+            showTab('practice');
+        } else { playS(false); scores.rid = 0; document.getElementById('rid-badge').innerText = "Балл: 0.00 / 1"; }
+        document.getElementById('r_ans').disabled = true;
+        document.querySelector('#riddle button').disabled = true;
+        calcTotal();
+    }
+</script>
+
+</body>
+</html>
